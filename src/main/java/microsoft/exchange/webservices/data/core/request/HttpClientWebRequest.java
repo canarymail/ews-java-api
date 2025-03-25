@@ -82,20 +82,18 @@ public class HttpClientWebRequest extends HttpWebRequest {
     // This releases the connection but keeps it alive for future request
     // If that is not possible, we simply cleanup the whole connection
 
-      boolean needToReleaseConnection = false;
+    if (response != null && response.getEntity() != null) {
       try {
-          if (response != null && response.getEntity() != null) {
-              EntityUtils.consume(response.getEntity());
-          }
-      } catch (IOException e) {
-          // Log the exception or handle it as needed
-          e.printStackTrace();
-          needToReleaseConnection = true;
-      }
-
-      if (needToReleaseConnection && httpPost != null) {
+        EntityUtils.consume(response.getEntity());
+      } catch (Exception e) {
+        // Handle any exception that occurs during entity consumption
+        if (httpPost != null) {
           httpPost.releaseConnection();
+        }
       }
+    } else if (httpPost != null) {
+      httpPost.releaseConnection();
+    }
 
     // We set httpPost to null to prevent the connection from being closed again by an accidental
     // second call to close()
